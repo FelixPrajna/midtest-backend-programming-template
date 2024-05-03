@@ -5,21 +5,6 @@ const { hashPassword, passwordMatched } = require('../../../utils/password');
  * Get list of users
  * @returns {Array}
  */
-async function getUsers() {
-  const users = await usersRepository.getUsers();
-
-  const results = [];
-  for (let i = 0; i < users.length; i += 1) {
-    const user = users[i];
-    results.push({
-      id: user.id,
-      name: user.name,
-      email: user.email,
-    });
-  }
-
-  return results;
-}
 
 /**
  * Get user detail
@@ -159,6 +144,92 @@ async function changePassword(userId, password) {
   }
 
   return true;
+}
+
+async function getUsers(page = 1, limit = null, search = '', sort) {
+  const users = await usersRepository.getUsers();
+
+  // filter users based on search query
+  const filteredUsers = users.filter((user) => {
+    const searchTerm = search.toLowerCase();
+    if (searchTerm.includes(':')) {
+      const [field, term] = searchTerm.split(':');
+      if (field === 'email') {
+        return user.email.toLowerCase().includes(term);
+      } else if (field === 'name') {
+        return user.name.toLowerCase().includes(term);
+      } else {
+        return false;
+      }
+    } else {
+      return (
+        user.name.toLowerCase().includes(searchTerm) ||
+        user.email.toLowerCase().includes(searchTerm)
+      );
+    }
+  });
+
+  // sort users based on sort query
+  let sortedUsers;
+  if (sort) {
+    const sortParts = sort.split(':');
+    if (sortParts.length === 2) {
+      const field = sortParts[0];
+      const direction = sortParts[1];
+      sortedUsers = filteredUsers.slice().sort((a, b) => {
+        if (field === 'name') {
+          if (direction === 'asc') {
+            return a.name.localeCompare(b.name);
+          } else {
+            return b.name.localeCompare(a.name);
+          }
+        } else if (field === 'email') {
+          if (direction === 'asc') {
+            return a.email.localeCompare(b.email);
+          } else {
+            return b.email.localeCompare(a.email);
+          }
+        } else {
+          return 0;
+        }
+      });
+    } else {
+      sortedUsers = filteredUsers.slice(); // default to no sorting
+    }
+  } else {
+    sortedUsers = filteredUsers.slice(); // default to no sorting
+  }
+
+  // logika untuk membuat pagination nomor 1
+  const startIndex = (page - 1) * limit;
+  const endIndex = limit
+    ? Math.min(startIndex + limit, sortedUsers.length)
+    : sortedUsers.length; // Handle cases with and without limit
+  const paginatedUsers = sortedUsers.slice(startIndex, endIndex);
+
+  // untuk memformat data data yang sudah ada
+  const results = paginatedUsers.map((user) => ({
+    id: user.id,
+    name: user.name,
+    email: user.email,
+  }));
+
+  // info dari pagination
+  const totalUsers = sortedUsers.length;
+  const totalPages = Math.ceil(totalUsers / (limit || sortedUsers.length)); //untuk mengatasi kasus dengan batas atupun tanpa batas
+  const hasPreviousPage = page > 1;
+  const hasNextPage = totalPages > page;
+
+  const paginationInfo = {
+    page_number: page,
+    page_size: limit,
+    count: paginatedUsers.length,
+    total_pages: totalPages,
+    has_previous_page: hasPreviousPage,
+    has_next_page: hasNextPage,
+  };
+
+  return { paginationInfo, results }; // untuk mereturun hasil dan infonya
 }
 
 module.exports = {

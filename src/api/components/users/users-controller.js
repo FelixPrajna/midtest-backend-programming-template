@@ -8,14 +8,6 @@ const { errorResponder, errorTypes } = require('../../../core/errors');
  * @param {object} next - Express route middlewares
  * @returns {object} Response object or pass an error to the next route
  */
-async function getUsers(request, response, next) {
-  try {
-    const users = await usersService.getUsers();
-    return response.status(200).json(users);
-  } catch (error) {
-    return next(error);
-  }
-}
 
 /**
  * Handle get user detail request
@@ -184,6 +176,25 @@ async function changePassword(request, response, next) {
     }
 
     return response.status(200).json({ id: request.params.id });
+  } catch (error) {
+    return next(error);
+  }
+}
+
+async function getUsers(request, response, next) {
+  try {
+    const page = parseInt(request.query.page_number) || 1;
+    const pageSize = parseInt(request.query.page_size) || null;
+    const search = request.query.search;
+    const sort = request.query.sort;
+
+    const { paginationInfo, results } = await usersService.getUsers(
+      page,
+      pageSize,
+      search,
+      sort
+    );
+    return response.status(200).json({ paginationInfo, results });
   } catch (error) {
     return next(error);
   }
