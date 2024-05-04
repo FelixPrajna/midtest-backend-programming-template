@@ -1,20 +1,19 @@
 const express = require('express');
+const router = express.Router();
 
 const authenticationMiddleware = require('../../middlewares/authentication-middleware');
 const celebrate = require('../../../core/celebrate-wrappers');
 const usersControllers = require('./users-controller');
 const usersValidator = require('./users-validator');
 
-const route = express.Router();
-
 module.exports = (app) => {
-  app.use('/users', route);
+  app.use('/users', router);
 
   // Get list of users
-  route.get('/', authenticationMiddleware, usersControllers.getUsers);
+  router.get('/', authenticationMiddleware, usersControllers.getUsers);
 
   // Create user
-  route.post(
+  router.post(
     '/',
     authenticationMiddleware,
     celebrate(usersValidator.createUser),
@@ -22,10 +21,10 @@ module.exports = (app) => {
   );
 
   // Get user detail
-  route.get('/:id', authenticationMiddleware, usersControllers.getUser);
+  router.get('/:id', authenticationMiddleware, usersControllers.getUser);
 
   // Update user
-  route.put(
+  router.put(
     '/:id',
     authenticationMiddleware,
     celebrate(usersValidator.updateUser),
@@ -33,13 +32,50 @@ module.exports = (app) => {
   );
 
   // Delete user
-  route.delete('/:id', authenticationMiddleware, usersControllers.deleteUser);
+  router.delete('/:id', authenticationMiddleware, usersControllers.deleteUser);
 
   // Change password
-  route.post(
+  router.post(
     '/:id/change-password',
     authenticationMiddleware,
     celebrate(usersValidator.changePassword),
     usersControllers.changePassword
+  );
+
+  // Create purchase
+  router.post(
+    '/purchases/:id',
+    authenticationMiddleware,
+    celebrate(usersValidator.createPurchase),
+    usersControllers.createPurchase
+  );
+
+  // Create Products
+  router.post(
+    '/product',
+    authenticationMiddleware,
+    usersControllers.createProducts
+  );
+
+  // Get list of products
+  router.get(
+    '/product/:id',
+    authenticationMiddleware,
+    usersControllers.getProduct
+  );
+
+  // Update product
+  router.put(
+    '/products/:id',
+    authenticationMiddleware,
+    celebrate(usersValidator.updateProduct),
+    usersControllers.updateProduct
+  );
+
+  // Delete product
+  router.delete(
+    '/products/:id',
+    authenticationMiddleware,
+    usersControllers.deleteProduct
   );
 };

@@ -1,5 +1,8 @@
 const usersRepository = require('./users-repository');
 const { hashPassword, passwordMatched } = require('../../../utils/password');
+const { create } = require('lodash');
+const { namaBarang, timestamp } = require('../../../models/purchase-schema');
+const { Products, Purchase } = require('../../../models');
 
 /**
  * Get list of users
@@ -232,6 +235,140 @@ async function getUsers(page = 1, limit = null, search = '', sort) {
   return { paginationInfo, results }; // untuk mereturun hasil dan infonya
 }
 
+/**
+ * Create new purchase
+ * @param {string} customer - Customer ID or name
+ * @param {string} barang - Purchased item
+ * @param {number} jumlah - Quantity of the purchased item
+ * @returns {boolean}
+ */
+async function createPurchase(id, namaBarang, amount) {
+  try {
+    const purchaseId =
+      Math.random().toString(36).substring(2, 15) +
+      Math.random().toString(36).substring(2, 15);
+    const fromUser = await usersRepository.getUser(id);
+    const timestamp = Date.now();
+    const newPurchase = await usersRepository.createPurchase(
+      purchaseId,
+      fromUser,
+      namaBarang,
+      amount,
+      timestamp
+    );
+    // return newPurchase;
+    return true; // Return true if the purchase is successfully created
+  } catch (error) {
+    // Handle errors, log them, or throw custom error if necessary
+    throw error;
+  }
+}
+
+/**
+ * Get user detail
+ * @param {string} id - User ID
+ * @returns {Object}
+ */
+async function getProduct(id) {
+  const product = await usersRepository.getProducts(id);
+
+  // User not found
+  if (!product) {
+    return null;
+  }
+
+  return {
+    id: product.id,
+    namaBarang: product.namaBarang,
+    amount: product.amount,
+  };
+}
+
+/**
+ * Get list of users
+ * @returns {Array}
+ */
+async function getPurchase() {
+  const purchase = await usersRepository.getPurchase();
+
+  const results = [];
+  for (let i = 0; i < purchase.length; i += 1) {
+    const purchase = Purchases[i];
+    results.push({
+      id: purchase.id,
+      name: purchase.name,
+      email: purchase.email,
+    });
+  }
+
+  return results;
+}
+
+/**
+ * Create new product
+ * @param {string} namaBarang - nama barang
+ * @param {string} amount - total barang
+ * @returns {boolean}
+ */
+async function createProducts(namaBarang, amount) {
+  const newProducts = new Products({
+    namaBarang,
+    amount,
+  });
+  try {
+    await newProducts.save();
+    return true;
+  } catch (err) {
+    return false;
+  }
+}
+
+/**
+ * Update existing product
+ * @param {string} id - User ID
+ * @param {string} namaBarang - Name
+ * @param {string} amount - amount
+ * @returns {boolean}
+ */
+async function updateProduct(id, namaBarang, amount) {
+  const product = await usersRepository.getProducts(id);
+
+  // product not found
+  if (!product) {
+    return null;
+  }
+
+  try {
+    await usersRepository.updateProduct(id, namaBarang, amount);
+  } catch (err) {
+    return null;
+  }
+
+  return true;
+}
+
+/**
+ * Delete user
+ * @param {string} id - User ID
+ * @returns {boolean}
+ */
+async function deleteProduct(id) {
+  const Product = await usersRepository.getProducts(id);
+
+  // User not found
+  if (!Product) {
+    return null;
+  }
+
+  try {
+    await usersRepository.deleteProduct(id);
+  } catch (err) {
+    return null;
+  }
+
+  return true;
+}
+
 module.exports = {
   getUsers,
   getUser,
@@ -241,4 +378,10 @@ module.exports = {
   emailIsRegistered,
   checkPassword,
   changePassword,
+  createPurchase,
+  createProducts,
+  getPurchase,
+  getProduct,
+  updateProduct,
+  deleteProduct,
 };

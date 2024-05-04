@@ -1,4 +1,7 @@
 const { User } = require('../../../models');
+const { Purchase } = require('../../../models');
+const { fromUserId } = require('../../../models/purchase-schema');
+const { Products } = require('../../../models');
 
 /**
  * Get a list of users
@@ -81,6 +84,81 @@ async function changePassword(id, password) {
   return User.updateOne({ _id: id }, { $set: { password } });
 }
 
+/**
+ * Create new purchase
+ * @param {string} name - Name
+ * @param {string} email - Email
+ * @param {string} password - Hashed password
+ * @returns {Promise}
+ */
+async function createPurchase(
+  purchaseId,
+  fromUserId,
+  namaBarang,
+  amount,
+  timestamp
+) {
+  return Purchase.create({
+    purchaseId,
+    fromUserId,
+    namaBarang,
+    amount,
+    timestamp,
+  });
+}
+
+/**
+ * Create new products
+ * @param {string} namaBarang - nama barang
+ * @param {string} amount - total barangnya
+ * @returns {Promise}
+ */
+async function createProducts(namaBarang, amount) {
+  return Products.create({
+    namaBarang,
+    amount,
+  });
+}
+
+/**
+ * Get user detail
+ * @param {string} id - User ID
+ * @returns {Promise}
+ */
+async function getProducts(id) {
+  return Products.findById(id);
+}
+
+/**
+ * Update existing product
+ * @param {string} id - User ID
+ * @param {string} namaBarang - Name
+ * @param {string} amount - jumlah
+ * @returns {Promise}
+ */
+async function updateProduct(id, namaBarang, amount) {
+  return Products.updateOne(
+    {
+      _id: id,
+    },
+    {
+      $set: {
+        namaBarang,
+        amount,
+      },
+    }
+  );
+}
+
+/**
+ * Delete a user
+ * @param {string} id - Product ID
+ * @returns {Promise}
+ */
+async function deleteProduct(id) {
+  return Products.deleteOne({ _id: id });
+}
+
 module.exports = {
   getUsers,
   getUser,
@@ -89,4 +167,9 @@ module.exports = {
   deleteUser,
   getUserByEmail,
   changePassword,
+  createPurchase,
+  createProducts,
+  getProducts,
+  updateProduct,
+  deleteProduct,
 };

@@ -1,6 +1,5 @@
 const usersService = require('./users-service');
 const { errorResponder, errorTypes } = require('../../../core/errors');
-
 /**
  * Handle get list of users request
  * @param {object} request - Express request object
@@ -200,6 +199,179 @@ async function getUsers(request, response, next) {
   }
 }
 
+async function createPurchase(request, response, next) {
+  try {
+    const namaBarang = request.body.namaBarang;
+    const amount = request.body.amount;
+    const id = request.params.id;
+
+    // Validation or additional business logic can be added here
+
+    // Call service to create purchase
+    const success = await usersService.createPurchase(id, namaBarang, amount);
+
+    if (!success) {
+      throw errorResponder(
+        errorTypes.UNPROCESSABLE_ENTITY,
+        'Failed to create purchase'
+      );
+    }
+
+    return response
+      .status(200)
+      .json({ message: 'Purchase created successfully' });
+  } catch (error) {
+    return next(error);
+  }
+}
+
+/**
+ * Handle create products
+ * @param {object} request - Express request object
+ * @param {object} response - Express response object
+ * @param {object} next - Express route middlewares
+ * @returns {object} Response object or pass an error to the next route
+ */
+async function createProducts(request, response, next) {
+  try {
+    const namaBarang = request.body.namaBarang;
+    const amount = request.body.amount;
+
+    const success = await usersService.createProducts(namaBarang, amount);
+    if (!success) {
+      throw errorResponder(
+        errorTypes.UNPROCESSABLE_ENTITY,
+        'Failed to create products'
+      );
+    }
+
+    return response.status(200).json({ namaBarang, amount });
+  } catch (error) {
+    return next(error);
+  }
+}
+
+// Get Products
+/**
+ * Handle get user detail request
+ * @param {object} request - Express request object
+ * @param {object} response - Express response object
+ * @param {object} next - Express route middlewares
+ * @returns {object} Response object or pass an error to the next route
+ */
+async function getProduct(request, response, next) {
+  try {
+    const product = await usersService.getProduct(request.params.id);
+
+    if (!product) {
+      throw errorResponder(errorTypes.UNPROCESSABLE_ENTITY, 'Unknown product');
+    }
+
+    return response.status(200).json(product);
+  } catch (error) {
+    return next(error);
+  }
+}
+
+// Update Purchase
+async function updatePurchase(request, response, next) {
+  try {
+    const id = request.params.id;
+    const newData = request.body;
+
+    // Call service to update purchase
+    const success = await usersService.updatePurchase(id, newData);
+
+    if (!success) {
+      throw errorResponder(
+        errorTypes.UNPROCESSABLE_ENTITY,
+        'Failed to update purchase'
+      );
+    }
+
+    return response
+      .status(200)
+      .json({ message: 'Purchase updated successfully' });
+  } catch (error) {
+    return next(error);
+  }
+}
+
+// Delete Purchase
+async function deletePurchase(request, response, next) {
+  try {
+    const id = request.params.id;
+
+    // Call service to delete purchase
+    const success = await usersService.deletePurchase(id);
+
+    if (!success) {
+      throw errorResponder(
+        errorTypes.UNPROCESSABLE_ENTITY,
+        'Failed to delete purchase'
+      );
+    }
+
+    return response
+      .status(200)
+      .json({ message: 'Purchase deleted successfully' });
+  } catch (error) {
+    return next(error);
+  }
+}
+
+/**
+ * Handle update product request
+ * @param {object} request - Express request object
+ * @param {object} response - Express response object
+ * @param {object} next - Express route middlewares
+ * @returns {object} Response object or pass an error to the next route
+ */
+async function updateProduct(request, response, next) {
+  try {
+    const id = request.params.id;
+    const namaBarang = request.body.namaBarang;
+    const amount = request.body.amount;
+
+    const success = await usersService.updateProduct(id, namaBarang, amount);
+    if (!success) {
+      throw errorResponder(
+        errorTypes.UNPROCESSABLE_ENTITY,
+        'Failed to update product'
+      );
+    }
+
+    return response.status(200).json({ id });
+  } catch (error) {
+    return next(error);
+  }
+}
+
+/**
+ * Handle delete user request
+ * @param {object} request - Express request object
+ * @param {object} response - Express response object
+ * @param {object} next - Express route middlewares
+ * @returns {object} Response object or pass an error to the next route
+ */
+async function deleteProduct(request, response, next) {
+  try {
+    const id = request.params.id;
+
+    const success = await usersService.deleteProduct(id);
+    if (!success) {
+      throw errorResponder(
+        errorTypes.UNPROCESSABLE_ENTITY,
+        'Failed to delete Product'
+      );
+    }
+
+    return response.status(200).json({ id });
+  } catch (error) {
+    return next(error);
+  }
+}
+
 module.exports = {
   getUsers,
   getUser,
@@ -207,4 +379,11 @@ module.exports = {
   updateUser,
   deleteUser,
   changePassword,
+  createPurchase,
+  getProduct,
+  updatePurchase,
+  deletePurchase,
+  createProducts,
+  updateProduct,
+  deleteProduct,
 };
